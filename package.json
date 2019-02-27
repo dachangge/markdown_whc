@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ant-design-vue": "^1.3.5",
     "highlight.js": "^9.15.5",
     "hotkeys-js": "^3.4.4",
     "markdown-it-emoji": "^1.4.0",

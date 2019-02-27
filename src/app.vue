@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <md-header @bthClick="insertAtCursor" @export="exportMarkDown"></md-header>
+        <md-header @bthClick="insertAtCursor" @export="exportMarkDown" ></md-header>
         <div class="content">
             <div class="editor">
                 <h1>编码区</h1>
@@ -65,7 +65,15 @@ export default {
 
     methods: {
 
-
+        //设置光标位置
+        setCursorPosition(startIdx, endIdx) {
+            this.$nextTick(() => {
+                const textarea = document.querySelector("textarea");
+                textarea.selectionStart = startIdx;
+                textarea.selectionEnd = endIdx;
+                textarea.focus()
+            })
+        },
 
 
         //导出markdown文件
@@ -86,30 +94,43 @@ export default {
         insertAtCursor(item){
             const textarea = this.$refs.textarea;
             console.log(item, textarea);
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            //插入图片
+            if(item.type === 'link'){
+                this.editorValue = this.editorValue.substring(0, end) + '[此处输入链接的描述](' +item.template + ')' + this.editorValue.substring(end);
+                this.setCursorPosition(end + 1, end + 10);
+            }
             //可以选中文字设置前缀
-            if(item.fixed || item.prefix){
+            else if(item.fixed || item.prefix || item.template){
                 console.log(textarea.selectionStart, textarea.selectionEnd)
                 //有选中文字段
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
+
                 if(start !== end){
                     //前后都有后缀
                     if(item.fixed){
                         this.editorValue = this.editorValue.substring(0, start) + item.fixed + this.editorValue.substring(start, end) + item.fixed + this.editorValue.substring(end);
+                        this.setCursorPosition(start, end + item.fixed.length * 2);
                     }
                     //只有前缀
                     else if(item.prefix){
                         this.editorValue = this.editorValue.substring(0, start) + item.prefix + this.editorValue.substring(start, end) + this.editorValue.substring(end);
+                        this.setCursorPosition(start, end + item.prefix.length)
                     }
+
                 }
                 //未选中文字
                 else{
                     this.editorValue = this.editorValue.substring(0, start) + item.template + this.editorValue.substring(start);
+                    // if()
                 }
+                // this.$refs.textarea.setSelectionRange(10,10);
+
             }
         },
 
     },
+
 
     mounted(){
         //读取缓存
@@ -117,16 +138,17 @@ export default {
             this.editorValue = window.localStorage.getItem('MarkdownStorage');
         }
 
-
-
       //快捷键设置
-        hostkeys("ctrl+z,ctrl+shift+z",(event,handler) => {
+        hostkeys.filter = () => true
+        hostkeys("ctrl+z,command+z,command+shift+z,ctrl+shift+z",(event,handler) => {
+            event.preventDefault()
         switch (handler.key) {
             //撤回
             case "ctrl+z":
             case 'command+z':
             if(this.operateHistory.length){
                 let str = this.operateHistory.pop();
+                console.log(str);
                 this.deleteHistory.push(str);
                 this.editorValue = str;
             }
@@ -148,10 +170,11 @@ export default {
 
     watch:{
         'editorValue'(){
+            console.error(this.editorValue)
             this.previewHtml = this.markdown.render(this.editorValue);
             let lastStr = this.operateHistory.length ? this.operateHistory[this.operateHistory.length - 1] : '';
             if(lastStr !==  this.editorValue){
-                this.operateHistory.push(lastStr);
+                this.operateHistory.push(this.editorValue);
             }
             window.localStorage.setItem('MarkdownStorage', this.editorValue);
 

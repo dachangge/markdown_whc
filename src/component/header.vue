@@ -9,6 +9,21 @@
                 <button @click="exportMarkDown">导出</button>
             </li>
         </ul>
+
+
+        <a-modal
+                title="链接"
+                v-model="linkFlag"
+                @ok="handleOk"
+        >
+            <a-input placeholder="请输入链接地址（可选标题）" v-model="linkValue"></a-input>
+            <template slot="footer">
+                <a-button key="back" @click="linkFlag = false">取消</a-button>
+                <a-button key="submit" type="primary" :loading="false" :disabled="!linkValue" @click="handleOk('link')">
+                    确定
+                </a-button>
+            </template>
+        </a-modal>
     </div>
 </template>
 
@@ -17,6 +32,8 @@
         name: 'mdHeader',
         data(){
             return {
+                linkFlag: false,
+                linkValue: '',
                 btnList: [
                     {
                         desc: '加粗',
@@ -141,7 +158,25 @@ text2 | text2
             }
         },
         methods: {
+            //点击确定
+            handleOk(flag){
+                if(flag === 'link'){
+                    this.linkFlag = false;
+                    this.$emit("bthClick",{template: this.linkValue, type: 'link'})
+                }
+
+            },
             handleClick(item) {
+                if(item.special){
+                    //插入链接
+                    if(item.icon === 'icon-link'){
+                        this.linkFlag = true;
+                    }
+                    //插入图片
+                    else if(item.icon === 'icon-tupian'){
+
+                    }
+                }
                 this.$emit("bthClick", item)
             },
             //导出markdown文件
