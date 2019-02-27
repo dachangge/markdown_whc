@@ -65,9 +65,21 @@ export default {
 
     methods: {
 
+
+
+
         //导出markdown文件
         exportMarkDown(){
             // this.$emit("export")
+            const blob = new Blob([this.editorValue], {type: 'text/plain'});
+            const a = document.createElement("a");
+            a.style.display = 'none';
+            a.download = '草稿.md';
+            a.href = Reflect.apply(URL.createObjectURL, undefined, [blob]);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.localStorage.removeItem("MarkdownStorage");
         },
 
         //在光标处插入内容
